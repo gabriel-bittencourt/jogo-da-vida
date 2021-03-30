@@ -1,110 +1,80 @@
 -- Vizinhanca | estado desejado
-countStates :: [[Char]] -> Char -> Int
+countStates :: [[String]] -> String -> Int
 countStates [] _ = 0
 countStates (s:ss) c = (length $ filter (==c) s) + countStates ss c
 
 -- Vizinhanca
-countAlive :: [[Char]] -> Int
-countAlive n = countStates n 'a'
+countAlive :: [[String]] -> Int
+countAlive n = countStates n "alive"
 
 -- Vizinhanca
-countDead :: [[Char]] -> Int
-countDead n = countStates n 'd'
+countDead :: [[String]] -> Int
+countDead n = countStates n "dead"
 
 -- Vizinhanca
-countZombies :: [[Char]] -> Int
-countZombies n = countStates n 'z'
+countZombies :: [[String]] -> Int
+countZombies n = countStates n "zombie"
 
 -- # vivos | # zumbis
-runAlive :: Int -> Int -> Char
+runAlive :: Int -> Int -> String
 runAlive a z
-    | z >= 1 = 'z'
-    | z == 0 && (a > 3 || a < 2) = 'd'
-    | otherwise = 'a'
+    | z >= 1 = "zombie"
+    | z == 0 && (a > 3 || a < 2) = "dead"
+    | otherwise = "alive"
 
 -- # vivos
-runDead :: Int -> Char
+runDead :: Int -> String
 runDead a
-    | a == 3 = 'a'
-    | otherwise = 'd'
+    | a == 3 = "alive"
+    | otherwise = "dead"
 
 -- # vivos
-runZombie :: Int -> Char
+runZombie :: Int -> String
 runZombie a
-    | a == 0 = 'd'
-    | otherwise = 'z'
+    | a == 0 = "dead"
+    | otherwise = "zombie"
 
 -- Vizinhanca | valor da celula
-runCell :: [[Char]] -> Char -> Char
+runCell :: [[String]] -> String -> String
 runCell n cell
-    | cell == 'a' = runAlive a z
-    | cell == 'd' = runDead a
-    | cell == 'z' = runZombie a
+    | cell == "alive" = runAlive a z
+    | cell == "dead" = runDead a
+    | cell == "zombie" = runZombie a
     where 
         a = countAlive n
         z = countZombies n
 
--- Linhas vizinhas | id linha | id coluna
-getNeighbourCols :: [[a]] -> Int -> Int -> [[[a]]]
-
-getNeighbourCols (a:b:_) 0 0                                                        -- Linha 0 couna 0 -> vizinhanca 2x2
-    | neighbourColsLength == 2 = [neighbourCols]
-    | otherwise = neighbourCols:getNeighbourCols [a, b] 0 1
+-- Linhas vizinhas | id coluna | tamanho horizontal vizinhança
+getNeighbourCols :: [[String]] -> Int -> Int -> [[[String]]]
+getNeighbourCols (a:b:[]) col size
+    | col == 0 = [na, nb]:getNeighbourCols [a, b] (col+1) 3                                         -- Primeira viznhinhança da linha
+    | length na == 2 = [[na, nb]]                                                                   -- Última vizinhana da linha
+    | otherwise = [na, nb]:getNeighbourCols [drop 1 a, drop 1 b] (col+1) 3                          -- Demais vizinhanças
     where
-        neighbourCols = [take 2 a, take 2 b]
-        neighbourColsLength = length a
+        na = take size a
+        nb = take size b
+getNeighbourCols (a:b:c:_) col size
+    | col == 0 = [na, nb, nc]:getNeighbourCols [a, b, c] (col+1) 3                                  -- Primeira viznhinhança da linha
+    | length na == 2 = [[na, nb, nc]]                                                               -- Última vizinhana da linha
+    | otherwise = [na, nb, nc]:getNeighbourCols [drop 1 a, drop 1 b, drop 1 c] (col+1) 3            -- Demais vizinhanças
+    where 
+        na = take size a
+        nb = take size b
+        nc = take size c
 
-getNeighbourCols (a:b:_) 0 _                                                        -- Linha 0 coluna _ -> vizinhanca 2x3 (também trata a última vizinhanca 2x2)
-    | neighbourColsLength == 2 = [neighbourCols]
-    | otherwise = neighbourCols:getNeighbourCols rowsTail 0 1
-    where
-        neighbourCols = [take 3 a, take 3 b]
-        neighbourColsLength = length a
-        rowsTail = [drop 1 a, drop 1 b]
-
-getNeighbourCols (a:b:c:_) _ 0 = neighbourCols:getNeighbourCols [a, b, c] 1 1       -- Linha _ coluna 0 -> vizinhanca 3x2
-    where
-        neighbourCols = [take 2 a, take 2 b, take 2 c]
-
-getNeighbourCols (a:b:c:_) _ _                                                      -- Linha _ coluna _ -> vizinhaca 3x3 (também trata ultima linha 2x_)
-    | neighbourColsLength == 2 = [neighbourCols]
-    | otherwise = neighbourCols:getNeighbourCols rowsTail 1 1
-    where
-        neighbourCols = [take 3 a, take 3 b, take 3 c]
-        neighbourColsLength = length a
-        rowsTail = [drop 1 a, drop 1 b, drop 1 c]
-
-getNeighbourCols (a:b:_) _ 0                                                        -- Linha última couna 0 -> vizinhanca 2x2
-    | neighbourColsLength == 2 = [neighbourCols]
-    | otherwise = neighbourCols:getNeighbourCols [a, b] 0 1
-    where
-        neighbourCols = [take 2 a, take 2 b]
-        neighbourColsLength = length a
-
-getNeighbourCols (a:b:_) _ _                                                        -- Linha última coluna _ -> vizinhanca 2x3 (também trata a última vizinhanca 2x2)
-    | neighbourColsLength == 2 = [neighbourCols]
-    | otherwise = neighbourCols:getNeighbourCols rowsTail 0 1
-    where
-        neighbourCols = [take 3 a, take 3 b]
-        neighbourColsLength = length a
-        rowsTail = [drop 1 a, drop 1 b]
 
 -- Matriz | id linha
-getNeighbourhoodMatrix :: [[Char]] -> Int -> [[[[Char]]]]
+getNeighbourhoodMatrix :: [[String]] -> Int -> [[[[String]]]]
 getNeighbourhoodMatrix (a:[]) _ = []
-getNeighbourhoodMatrix (a:b:rows) 0 = getNeighbourCols [a, b] 0 0:getNeighbourhoodMatrix (a:b:rows) 1
-getNeighbourhoodMatrix rows _ = getNeighbourCols neighbourRows 1 0:getNeighbourhoodMatrix (drop 1 rows) 1
+getNeighbourhoodMatrix (a:b:rows) 0 = getNeighbourCols [a, b] 0 2:getNeighbourhoodMatrix (a:b:rows) 1
+getNeighbourhoodMatrix rows row = getNeighbourCols neighbourRows 0 2:getNeighbourhoodMatrix (drop 1 rows) (row+1)
     where
         neighbourRows = take 3 rows
 
 
 main = do
-    let matrix = [['d', 'd', 'a', 'z'], ['z', 'a', 'd', 'd'],  ['z', 'a', 'd', 'd']]
-    let neighbours = [['d', 'd', 'a'], ['d', 'd'], ['d', 'd', 'd']]
-    let cell = 'a'
+    let matrix = [["dead", "dead", "alive", "zombie"], ["zombie", "alive", "dead", "dead"],  ["zombie", "alive", "dead", "dead"]]
     print $ matrix !! 0
     print $ matrix !! 1
     print $ matrix !! 2
     print $ getNeighbourhoodMatrix matrix 0
-   
-    -- print $ runCell neighbours cell
