@@ -1,18 +1,25 @@
+type Grid a = [[a]]
+
+data GameState = GameState {
+    grid :: Grid String,
+    nIteration :: Int
+}   deriving (Show)
+
 -- Vizinhanca | estado desejado
-countStates :: [[String]] -> String -> Int
+countStates :: Grid String -> String -> Int
 countStates [] _ = 0
 countStates (s:ss) c = (length $ filter (==c) s) + countStates ss c
 
 -- Vizinhanca
-countAlive :: [[String]] -> Int
+countAlive :: Grid String -> Int
 countAlive n = countStates n "alive"
 
 -- Vizinhanca
-countDead :: [[String]] -> Int
+countDead :: Grid String -> Int
 countDead n = countStates n "dead"
 
 -- Vizinhanca
-countZombies :: [[String]] -> Int
+countZombies :: Grid String -> Int
 countZombies n = countStates n "zombie"
 
 -- # vivos | # zumbis
@@ -35,7 +42,7 @@ runZombie a
     | otherwise = "zombie"
 
 -- Vizinhanca | valor da celula
-runCell :: [[String]] -> String -> String
+runCell :: Grid String -> String -> String
 runCell n cell
     | cell == "alive" = runAlive a z
     | cell == "dead" = runDead a
@@ -45,7 +52,7 @@ runCell n cell
         z = countZombies n
 
 -- Linhas vizinhas | id coluna | tamanho horizontal vizinhança
-getNeighbourCols :: [[String]] -> Int -> Int -> [[[String]]]
+getNeighbourCols :: Grid String -> Int -> Int -> [Grid String]
 getNeighbourCols (a:b:[]) col size
     | col == 0 = [na, nb]:getNeighbourCols [a, b] (col+1) 3                                         -- Primeira viznhinhança da linha
     | length na == 2 = [[na, nb]]                                                                   -- Última vizinhana da linha
@@ -62,19 +69,16 @@ getNeighbourCols (a:b:c:_) col size
         nb = take size b
         nc = take size c
 
-
 -- Matriz | id linha
-getNeighbourhoodMatrix :: [[String]] -> Int -> [[[[String]]]]
+getNeighbourhoodMatrix :: Grid String -> Int -> Grid (Grid String)
 getNeighbourhoodMatrix (a:[]) _ = []
 getNeighbourhoodMatrix (a:b:rows) 0 = getNeighbourCols [a, b] 0 2:getNeighbourhoodMatrix (a:b:rows) 1
 getNeighbourhoodMatrix rows row = getNeighbourCols neighbourRows 0 2:getNeighbourhoodMatrix (drop 1 rows) (row+1)
     where
         neighbourRows = take 3 rows
 
-
 main = do
     let matrix = [["dead", "dead", "alive", "zombie"], ["zombie", "alive", "dead", "dead"],  ["zombie", "alive", "dead", "dead"]]
-    print $ matrix !! 0
-    print $ matrix !! 1
-    print $ matrix !! 2
+    let grid = GameState matrix 0
+    print $ grid
     print $ getNeighbourhoodMatrix matrix 0
