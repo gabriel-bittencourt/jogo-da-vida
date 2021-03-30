@@ -44,7 +44,7 @@ runZombie a
 -- Vizinhanca | valor da celula
 runCell :: Grid String -> String -> String
 runCell n cell
-    | cell == "alive" = runAlive a z
+    | cell == "alive" = runAlive (a-1) z
     | cell == "dead" = runDead a
     | cell == "zombie" = runZombie a
     where 
@@ -77,8 +77,33 @@ getNeighbourhoodMatrix rows row = getNeighbourCols neighbourRows 0 2:getNeighbou
     where
         neighbourRows = take 3 rows
 
+-- Vizinhanças | Células
+runThroughCols :: [Grid String] -> [String] -> [String]
+runThroughCols [] [] = []
+runThroughCols (a:as) (b:bs) = runCell a b:runThroughCols as bs
+
+-- Vizinhanças | Células
+runThroughCells :: Grid (Grid String) -> Grid String -> Grid String
+runThroughCells [] [] = []
+runThroughCells (a:as) (b:bs) = runThroughCols a b:runThroughCells as bs
+
+-- Estado atual | max iterações
+playGame :: GameState -> Int -> GameState
+playGame gameState maxIt
+    | currIt == maxIt = gameState
+    | grid gameState == grid nextGameState = gameState
+    | otherwise = playGame nextGameState maxIt
+    where
+        currIt = nIteration gameState
+        neighbourhoodMatrix = getNeighbourhoodMatrix (grid gameState) 0
+        nextGrid = runThroughCells neighbourhoodMatrix (grid gameState)
+        nextGameState = GameState nextGrid (currIt+1)
+
+
 main = do
     let matrix = [["dead", "dead", "alive", "zombie"], ["zombie", "alive", "dead", "dead"],  ["zombie", "alive", "dead", "dead"]]
-    let grid = GameState matrix 0
-    print $ grid
-    print $ getNeighbourhoodMatrix matrix 0
+    let initialState = GameState matrix 0
+    let ans = playGame initialState 10
+    print initialState
+    print ans
+    
