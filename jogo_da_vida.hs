@@ -1,3 +1,5 @@
+import IO
+
 type Grid a = [[a]]
 
 data GameState = GameState {
@@ -101,9 +103,12 @@ playGame gameState maxIt
 
 
 main = do
-    let matrix = [["dead", "dead", "alive", "zombie"], ["zombie", "alive", "dead", "dead"],  ["zombie", "alive", "dead", "dead"]]
+    -- let matrix = [["dead", "dead", "alive", "zombie"], ["zombie", "alive", "dead", "dead"],  ["zombie", "alive", "dead", "dead"]]
+    (i, matrix) <- IO.loadMatrix "grid.txt"
+
     let initialState = GameState matrix 0
-    let ans = playGame initialState 10
+    let ans = playGame initialState i
+    
     print initialState
     print ans
     
