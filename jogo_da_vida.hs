@@ -49,7 +49,7 @@ runCell n cell
     | cell == "alive" = runAlive (a-1) z
     | cell == "dead" = runDead a
     | cell == "zombie" = runZombie a
-    where 
+    where
         a = countAlive n
         z = countZombies n
 
@@ -66,7 +66,7 @@ getNeighbourCols (a:b:c:_) col size
     | col == 0 = [na, nb, nc]:getNeighbourCols [a, b, c] (col+1) 3                                  -- Primeira viznhinhança da linha
     | length na == 2 = [[na, nb, nc]]                                                               -- Última vizinhana da linha
     | otherwise = [na, nb, nc]:getNeighbourCols [drop 1 a, drop 1 b, drop 1 c] (col+1) 3            -- Demais vizinhanças
-    where 
+    where
         na = take size a
         nb = take size b
         nc = take size c
@@ -108,7 +108,9 @@ main = do
 
     let initialState = GameState matrix 0
     let ans = playGame initialState i
-    
-    print initialState
-    print ans
-    
+
+    putStrLn "Estado inicial: \n"
+    printMatrix $ grid initialState
+
+    putStrLn $ "\nEstado final (" ++  show (nIteration ans) ++  " iterações):\n"
+    printMatrix $ grid ans
